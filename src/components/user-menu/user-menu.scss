@@ -60,6 +60,15 @@
   &-iban {
     font-size: 23px;
     margin-top: 30px;
+
+    &:hover {
+      cursor: pointer;
+      opacity: 0.9;
+    }
+
+    &:active {
+      opacity: 0.5;
+    }
   }
 
   &-balance {

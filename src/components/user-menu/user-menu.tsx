@@ -19,6 +19,7 @@ const UserMenu = () => {
     const [showAccountMenu, setShowAccountMenu] = useState(false);
     const [showAnalMenu, setShowAnalMenu] = useState(false);
     const [showFundsMenu, setShowFundsMenu] = useState(false);
+    const [showStatementMenu, setShowStatementMenu] = useState(false);
 
     const currencyCodes = [{
             code: 980,
@@ -144,13 +145,28 @@ const UserMenu = () => {
                 <div key={account.id}>
                     <div className={`account-wrapper account-wrapper-${account.type}`}>
                         <div className="account-currency">{currencyCodes.find(currency => currency.code === account.currencyCode).name}</div>
-                        <div className="account-iban">{account.iban}</div>
+                        <div title="Натисніть, щоб скопіювати IBAN в буфер обміну" onClick={(event: any) => {
+                            navigator.clipboard.writeText(event.target.innerText)
+                            alert('IBAN успішно скопійовано в буфер обміну')
+                        }} className="account-iban">{account.iban}</div>
                         <div className="account-balance">{account.balance.toFixed(2)}</div>
                     </div>
                 </div>
             )}
             {menu}
-            <a href="#" onClick={() => setShowAccountMenu(false)}>Повернутись до головного екрану</a>
+            {menu ?
+                <a href="#" onClick={() => {
+                    setShowAccountMenu(false);
+                    setShowFundsMenu(false);
+                    setShowStatementMenu(false);
+                    setShowAnalMenu(true);
+                }}>Повернутись до попереднього екрану</a> :
+                <a href="#" onClick={() => {
+                    setShowAccountMenu(false);
+                    setShowFundsMenu(false);
+                    setShowStatementMenu(false);
+                }}>Повернутись до головного екрану</a>
+            }
         </div>
     };
 
@@ -164,13 +180,7 @@ const UserMenu = () => {
                     }} href="#">Перейти до меню підрахунку</a>
                 </li>
                 <li>
-                    <a href="#">Порівняти загальну суму витрат</a>
-                </li>
-                <li>
-                    <a href="#">Порівняти загальну суму поповнень</a>
-                </li>
-                <li>
-                    <a href="#">Порівняти загальний оборот коштів</a>
+                    <a href="#">Перейти до меню порівняння</a>
                 </li>
                 <li>
                     <a href="#">Аналізувати витрати за категоріями</a>
@@ -184,23 +194,23 @@ const UserMenu = () => {
 
     const renderFundsMenu = () => {
         const menu = <>
-            <form onSubmit={handleSubmit((data) => prepareDataForAnal(data, user.accounts))}>
-                <input style={{width: '250px'}} type="text" placeholder="Введіть IBAN для підрахунку" {...register("iban")} />
-                <select {...register("type")}>
+            <form onSubmit={handleSubmit((data) => getFunds(prepareDataForAnal(data, user.accounts, user.id)))}>
+                <input required style={{width: '250px'}} type="text" placeholder="Введіть IBAN для підрахунку" {...register("iban")} />
+                <select required {...register("type")}>
                     <option value="refills">Підрахувати загальну суму витрат</option>
                     <option value="writeoff">Підрахувати загальну суму поповнень</option>
                     <option value="moneycircle">Підрахувати загальний оборот коштів</option>
                     <option value="extract">Показати виписку</option>
                 </select>
-                <label>
+                <label style={{display: 'block'}}>
                     Початкова дата
-                    <input type="date" {...register("dateFrom")} />
+                    <input required type="date" {...register("dateFrom")} />
                 </label>
-                <label>
+                <label style={{display: 'block'}}>
                     Кінцева дата
-                    <input type="date" {...register("dateTo")} />
+                    <input required type="date" {...register("dateTo")} />
                 </label>
-                <button type="submit">Підрахувати</button>
+                <button style={{margin: '10px 0 50px'}} type="submit">Підрахувати</button>
             </form>
         </>
 
@@ -209,7 +219,67 @@ const UserMenu = () => {
         </>
     };
 
-    if (!showAccountMenu && !showAnalMenu && !showFundsMenu) {
+    const renderStatementMenu = (data: any) => {
+        data.reverse();
+
+        return <>
+            <table style={{color: 'papayawhip'}}>
+                <tbody>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Найменування операції</th>
+                        <th>Сума</th>
+                    </tr>
+                    {data.map((operation: any) => {
+                        const date = new Date(operation.time * 1000);
+                        const day = date.getDate();
+                        const month = date.getMonth() + 1;
+                        return <tr key={operation.time}>
+                            <td style={{padding: '5px'}}>{day > 9 ? day : '0' + day}.{month  > 9 ? month : '0' + month}</td>
+                            <td style={{padding: '5px'}}>{operation.description}</td>
+                            <td style={{padding: '5px'}}>{operation.amount}</td>
+                        </tr>
+                    })}
+                </tbody>
+            </table>
+            <a style={{color: 'black'}} href="#" onClick={() => {
+                setShowAccountMenu(false);
+                setShowStatementMenu(false);
+                setShowAnalMenu(false)
+                setShowFundsMenu(true);
+            }}>Повернутись до попереднього екрану</a>
+        </>
+    };
+
+    const getFunds = async (data: any) => {
+        const response = await axios.post(`https://financeassistantdiplom.herokuapp.com/analyser/${data.type}?clientId=${data.clientId}&account=${data.account}`, {
+            timestamp1: data.dateFrom,
+            timestamp2: data.dateTo
+        });
+
+        switch (data.type) {
+            case 'refills':
+                alert(`Загальна сума витрат у період з ${data.dateFrom} по ${data.dateTo} становить: ${response.data.toFixed(2)} грн.`);
+                break;
+            case 'writeoff':
+                alert(`Загальна сума поповнень у період з ${data.dateFrom} по ${data.dateTo} становить: ${response.data.toFixed(2)} грн.`);
+                break;
+            case 'moneycircle':
+                alert(`Загальний оборот коштів у період з ${data.dateFrom} по ${data.dateTo} становить: ${response.data.toFixed(2)} грн.`);
+                break;
+            case 'extract':
+                setShowAnalMenu(false);
+                setShowFundsMenu(false);
+                setShowAccountMenu(false);
+                setShowStatementMenu(response.data);
+                break;
+            default:
+                alert('Error');
+                break;
+        }
+    }
+
+    if (!showAccountMenu && !showAnalMenu && !showFundsMenu && showStatementMenu === false) {
         return renderMainMenu();
     }
 
@@ -224,17 +294,22 @@ const UserMenu = () => {
     if (showFundsMenu) {
         return renderFundsMenu();
     }
+
+    if (showStatementMenu !== false) {
+        return renderStatementMenu(showStatementMenu);
+    }
 };
 
-const prepareDataForAnal = (data: any, accounts: Array<any>) => {
+const prepareDataForAnal = (data: any, accounts: Array<any>, clientId: string) => {
     const id = accounts.find(account => account.iban === data.iban).id;
 
-    console.log({
-        id: id,
+    return {
+        account: id,
+        clientId: clientId,
         type: data.type,
         dateFrom: data.dateFrom,
         dateTo: data.dateTo
-    });
+    };
 }
 
 const getTotalBalance = async (currency: any, clientId: string) => {
