@@ -1,0 +1,90 @@
+.user-menu {
+    &-wrapper {
+      font-size: 20px;
+      width: 800px;
+      margin: 50px auto;
+      background-color: white;
+      padding: 100px;
+      border-radius: 5px;
+
+      &--account {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      & ol {
+        margin: 50px 0;
+      }
+
+      & li {
+        margin: 5px 0;
+      }
+    }
+
+    &-personalSettings {
+      margin-left: 50px;
+    }
+}
+
+.account {
+  &-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    width: 350px;
+    height: 200px;
+    border-radius: 10px;
+
+    &-black {
+      background-color: black;
+      color: white;
+    }
+
+    &-white {
+      box-sizing: border-box;
+      border: 2px solid black;
+      color: black;
+    }
+
+    &-eAid {
+      background: rgb(2, 0, 36);
+      background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(13, 238, 176, 1) 0%, rgba(5, 155, 185, 1) 100%);
+    }
+  }
+
+  &-currency {
+    align-self: end;
+    padding: 10px;
+  }
+
+  &-iban {
+    font-size: 23px;
+    margin-top: 30px;
+  }
+
+  &-balance {
+    font-size: 36px;
+    margin-top: 40px;
+    padding: 0 10px;
+  }
+}
+
+.currency {
+  &-table {
+    padding: 30px;
+    font-size: 24px;
+
+    &-td {
+      padding: 5px;
+    }
+
+    &-flag {
+      width: 30px;
+      height: 20px;
+      display: inline-block;
+      background-repeat: no-repeat;
+      margin: 0 !important;
+    }
+  }
+}
+

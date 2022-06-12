@@ -1,0 +1,22 @@
+.token-login-wrapper {
+  font-size: 20px;
+  width: 800px;
+  margin: 50px auto;
+  border-radius: 5px;
+  padding: 100px;
+  background-color: white;
+
+  & li {
+    margin: 20px 0;
+  }
+}
+
+.token-login {
+  &-input {
+    margin: 0 10px;
+  }
+
+  &-button:hover {
+    cursor: pointer;
+  }
+}
